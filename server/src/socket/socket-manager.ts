@@ -35,7 +35,6 @@ export class SocketManager {
             this.onDisconnect(localSocket);
          });
       });
-      this.server.listen(3001);
    }
 
    public async sendRequest(request: Request, onResponse: OnResponseFn): Promise<boolean> {

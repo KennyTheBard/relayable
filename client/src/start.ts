@@ -3,7 +3,7 @@ import { Manager } from 'socket.io-client';
 
 (async () => {
 
-   const manager = new Manager('ws://localhost:3001', {
+   const manager = new Manager('ws://localhost:3000', {
       reconnectionDelayMax: 10000,
    });
    const socket = manager.socket('/');

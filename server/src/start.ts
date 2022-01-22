@@ -29,7 +29,7 @@ import { ResponseData, SocketManager } from './socket/socket-manager';
 
    app.use('/', router)
 
-   app.listen(3000, () => {
+   httpServer.listen(3000, () => {
       console.log(`Server starting on port 3000`);
    });
 
