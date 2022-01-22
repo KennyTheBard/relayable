@@ -19,21 +19,28 @@ export class SocketManager {
       this.server.on('connect', async (localSocket) => {
          await this.onConnect(localSocket);
 
-         localSocket.on('response', (msg: string) => {
+         localSocket.on('response', (msg) => {
             console.log(msg);
+            const fn = this.onResponseFnMap.get(msg.id);
+
+            if (!fn) {
+               console.error('No response function registered');
+               return;
+            }
             
-            const response = this.parseResponse(msg);
-            this.onResponseFnMap.get(response.id)(response);
+            fn(msg.data);
          });
 
          localSocket.on('disconnect', () => {
             this.onDisconnect(localSocket);
          });
       });
+      this.server.listen(3001);
    }
 
    public async sendRequest(request: Request, onResponse: OnResponseFn): Promise<boolean> {
       await this.relaySocketLock.acquireAsync();
+
       try {
          if (!this.relaySocket) {
             return false;
@@ -58,6 +65,7 @@ export class SocketManager {
             localSocket.disconnect();
             return;
          }
+
          this.relaySocket = localSocket;
       } finally {
          this.relaySocketLock.release();
@@ -75,8 +83,8 @@ export class SocketManager {
       }
    }
 
-   private serilizeRequest(id: string, request: Request): string {
-      return JSON.stringify({
+   private serilizeRequest(id: string, request: Request): any {
+      return {
          id,
          request: {
             url: request.url,
@@ -85,21 +93,19 @@ export class SocketManager {
             headers: request.headers,
             body: request.body
          }
-      });
-   }
-
-   private parseResponse(response: string): RelayResponse {
-      return JSON.parse(response);
+      };
    }
 }
 
-export type OnResponseFn = (response: RelayResponse) => void;
+export type OnResponseFn = (response: ResponseData) => void;
+
+export type ResponseData = {
+   status: number;
+   contentType: string;
+   body: string;
+};
 
 export type RelayResponse = {
    id: string;
-   response: {
-      statusCode: number;
-      statusMessage: string;
-      body: string;
-   }
+   data: ResponseData;
 };
